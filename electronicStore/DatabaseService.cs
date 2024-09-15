@@ -17,47 +17,35 @@ namespace electronicStore
             _dbContext.Database.EnsureCreated();
         }
 
-        public void CreateCustomer(string name)
+        public Customer CreateCustomer(string name)
         {
-            using (_dbContext)
-            {
-                _dbContext.Add(new Customer(name));
+            Customer customer = new Customer(name);
+                _dbContext.Add(customer);
                 _dbContext.SaveChanges();
-            }
+            return customer;
+            
         }
 
         public Customer QueryCustomer(string name)
         {
-            using (_dbContext)
-            {
-               return _dbContext.Customers.FirstOrDefault(c => c.Name.Contains(name));
-            }
+            return _dbContext.Customers.FirstOrDefault(c => c.Name.Contains(name));
         }
 
         public Customer QueryCustomer(int id)
         {
-            using (_dbContext)
-            {
                 return _dbContext.Customers.FirstOrDefault(c => c.Id == id);
-            }
         }
 
         public List<Ware> GetAllWares()
         {
-            using (_dbContext)
-            {
                 return [.. _dbContext.Wares];
-            }
         }
 
         public double GetOmsaetning(DateTime from, DateTime to)
         {
-            using (_dbContext)
-            {
                 List<Transaction> trans = [.. _dbContext.Transactions.Where(t => from <= t.Created && t.Created <= to).Include(t => t.Ware)];
 
                 return trans.Count > 0 ? (trans.Sum(t => t.Ware.Price)) : 0;
-            }
         }
 
         public double GetOmsaetningPrKunde(DateTime from, DateTime to, string kunde)
@@ -65,8 +53,6 @@ namespace electronicStore
             bool containsInt = kunde.Any(char.IsDigit);
             List<Transaction> trans;
 
-            using (_dbContext)
-            {
                 if (containsInt)
                 {
                     trans = [.. _dbContext.Transactions.Where(t => from <= t.Created && t.Created <= to && t.CustomerId == int.Parse(kunde)).Include(t => t.Ware)];
@@ -78,7 +64,20 @@ namespace electronicStore
 
 
                 return trans.Count > 0 ? (trans.Sum(t => t.Ware.Price)) / trans.Count : 0;
-            }
+        }
+
+        public string CreateTransaction(Ware ware, Customer customer, string uuid = "")
+        {
+            uuid = uuid == "" ? Guid.NewGuid().ToString() : uuid;
+            Transaction transaction = new()
+            {
+                CustomerId = customer.Id,
+                WareId = ware.Id,
+                TransactionUUID = uuid,
+                Created = DateTime.Now
+            };
+            _dbContext.Transactions.Add(transaction);
+            return transaction.TransactionUUID;
         }
     }
 }

@@ -1,9 +1,12 @@
-﻿using System;
+﻿using electronicStore.models;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Gaming.Input.ForceFeedback;
+using Windows.UI.Xaml.Documents;
 
 namespace electronicStore
 {
@@ -47,7 +50,7 @@ namespace electronicStore
         {
             switch (choice)
             {
-                case 1: Console.WriteLine("1"); break;
+                case 1: Transaction(); break;
                 case 2: PeriodevalgKundeOmsaetning(); break;
                 case 3: PeriodevalgOmsaetning(); break;
                 default: break;
@@ -144,16 +147,58 @@ namespace electronicStore
 
         public void Transaction()
         {
-            Console.WriteLine("nuværende kunde eller ny ?");
-            Console.WriteLine("1. nuværende");
-            Console.WriteLine("2. ny");
-            int valg = getInput();
-            switch (valg)
+            List<Ware> soldWares = new List<Ware>();
+            Customer customer = null;
+            while (customer == null)
             {
-                case 1: CustomerExists(); break;
-                case 2: CreateCustomer(); break;
-                default: break;
+                Console.WriteLine("nuværende kunde eller ny ?");
+                Console.WriteLine("1. nuværende");
+                Console.WriteLine("2. ny");
+                int valg = getInput();
+                switch (valg)
+                {
+                    case 1: customer = CustomerExists(); break;
+                    case 2: customer = CreateCustomer(); break;
+                    default: break;
+                }
             }
+            Console.WriteLine($"Sælger nu til kunde {customer.Name}");
+            Console.WriteLine("hvad bliver der solgt ?");
+            int n = 1;
+            foreach(Ware w in databaseService.GetAllWares())
+            {
+                Console.WriteLine($"{n}. {w.WareName} pris {w.Price}");
+                n++;
+            }
+            int wareValg = getInput();
+            Ware choosen = databaseService.GetAllWares()[wareValg - 1];
+            soldWares.Add(choosen);
+            Console.WriteLine($"solgt {choosen.WareName} til {customer.Name}");
+            //tilføj loop til at sælge flere på en gang, hvis dem til sidst
+            databaseService.CreateTransaction(choosen, customer);
+        }
+
+        public Customer CreateCustomer()
+        {
+            Console.WriteLine("indtast navn til ny kunde");
+            string navn = Console.ReadLine();
+            return databaseService.CreateCustomer(navn);
+
+        }
+
+        public Customer CustomerExists()
+        {
+            Console.WriteLine("indtast kundens navn");
+            string navn = Console.ReadLine();
+            Customer customer = databaseService.QueryCustomer(navn);
+            if (customer == null)
+            {
+                Console.WriteLine($"kunden ved navn {navn} kunne ikke findes, returnere til tidligere valg");
+                return null;
+            }
+               
+            return customer;
+
         }
     }
 }
