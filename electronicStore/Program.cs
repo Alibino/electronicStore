@@ -1,7 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using electronicStore;
+StoreLogicFactory storeLogicFactory = new StoreLogicFactory();
 
-Console.WriteLine("Hello, World!");
-StoreLogic storeLogic = new StoreLogic();
+IStoreLogic storeLogic = storeLogicFactory.generator().Create();
+storeLogic.createBaseWares();
 storeLogic.InitializeWelcome();
 

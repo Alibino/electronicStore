@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace electronicStore
 {
-    internal class StoreContext: DbContext
+    internal class StoreContext : DbContext
     {
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
